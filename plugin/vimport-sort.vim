@@ -13,9 +13,14 @@ let g:loaded_vimport_sort = 1
 " Sort imports
 function! SortImports()
   let save_cursor = getpos(".")
+  let curFiletype = &filetype
 
   if exists('g:import_sort_groups')
-    let sort_group_patterns = copy(g:import_sort_groups)
+    if has_key(g:import_sort_groups, curFiletype)
+      let sort_group_patterns = copy(g:import_sort_groups)
+    else
+      echoerr ("Vimport-sort| g:import_sort_groups[".curFiletype."] not set! Run ':h :SortImports' for set up information.")
+    endif
   else
     echoerr "Vimport-sort| g:import_sort_groups not set! Run ':h :SortImports' for set up information."
     return
@@ -38,12 +43,6 @@ function! s:groupImportSort(prefix, patterns)
   let first_line = -1
   let last_line = -1
   let trailing_newlines = 0
-
-  if exists('g:scala_import_sort_groups')
-    let sort_group_patterns = copy(g:import_sort_groups)
-  else
-    let sort_group_patterns = echoerr "Vimport-sort| g:import_sort_groups not set! Run ':h :SortImports' for set up information."
-  endif
 
   " A catch all pattern for imports which didn't match the other cases.
   call add(sort_group_patterns, '.*')
