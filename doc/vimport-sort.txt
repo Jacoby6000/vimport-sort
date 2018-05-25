@@ -1,0 +1,55 @@
+vimport-sort.txt Automatic grouping and sorting of imports/includes.
+
+==============================================================================
+INTRODUCTION                                    vimport-sort
+
+Automatic sorting and grouping of arbitrary import/include/whatever
+statements
+
+==============================================================================
+OPTIONS                                         vimport-sort-configuration
+
+There is only one option to set in vimport-sort, g:import_sort_settings.
+
+                                                'g:import_sort_settings'
+This setting is a dictionary used to define rules for how to group and sort
+imports. They key at the root of the dictionary indicates the language, and
+there are two configuration options per language.
+
+'import_prefix' is a pattern for detecting the beginning of an import
+statement.
+
+'import_groups' is an array of patterns for each grouping of imports you wish
+to have.
+
+Note that if an import does not fit in to an import group pattern, it will be
+grouped with the others that did not match an import group pattern and placed
+at the bottom of the imports list.
+
+Example configuration:
+
+    g:import_sort_settings = {
+    \  'scala': {
+    \    'import_prefix': 'import ',
+    \    'import_groups': [
+    \      'java\(x\)\?',
+    \      'scala',
+    \      'scalaz\|cats'
+    \    ]
+    \  },
+    \  'haskell': {
+    \    'import_prefix': 'import \(qualified\)\?',
+    \    'import_groups': [
+    \      'Data|Control'
+    \    ]
+    \  }
+    \}
+
+==============================================================================
+COMMANDS                                          vimport-sort-commands
+
+:SortImports      Sorts imports as described by the configuration object
+                  'g:import_sort_settings'
+
+------------------------------------------------------------------------------
+ vim:tw=78:ts=8:ft=help:norl:
