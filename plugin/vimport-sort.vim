@@ -12,12 +12,12 @@ let g:loaded_vimport_sort = 1
 
 " Sort imports
 function! SortImports()
-  if (exists('g:import_sort_settings'))
-    let save_cursor = getpos(".")
-    let curFiletype = &filetype
+  let save_cursor = getpos(".")
+  let curFiletype = &filetype
 
-    let errs = []
+  let errs = []
 
+  if exists('g:import_sort_settings')
     if has_key(g:import_sort_settings, curFiletype)
       let obj = g:import_sort_settings[curFiletype]
 
@@ -35,20 +35,20 @@ function! SortImports()
     else
       call add(errs, "g:import_sort_groups['".curFiletype."'] not set!")
     endif
-
-    if len(errs) == 0
-      call s:groupImportSort(import_prefix, import_groups)
-    else
-      for err in errs
-        echo s:errorMsg(err)
-      endfor
-      echo s:errorMsg("Run ':h :SortImports' for set up information.")
-    endif
-
-    call setpos('.', save_cursor)
   else
-    echo s:errorMsg("g:import_sort_settings is not set. See `:h :SortImports` for set up information")
+    call add(errs, "g:import_sort_settings is not set.")
   endif
+
+  if len(errs) == 0
+    call s:groupImportSort(import_prefix, import_groups)
+  else
+    for err in errs
+      echo s:errorMsg(err)
+    endfor
+    echo s:errorMsg("Run ':h :SortImports' for set up information.")
+  endif
+
+  call setpos('.', save_cursor)
 endfunction
 
 function! s:errorMsg(err)
