@@ -19,10 +19,13 @@ function! SortImports()
   let errs = []
 
   if exists('g:import_sort_settings')
+    if has_key(g:import_sort_settings, "project_package")
+      let project_package = copy(g:import_sort_settings["project_package"])
+    endif
+
     if has_key(g:import_sort_settings, curFiletype)
       let obj = g:import_sort_settings[curFiletype]
 
-      " Required Params
       if has_key(obj, "import_prefix")
         let import_prefix = copy(obj["import_prefix"])
       else
@@ -33,12 +36,6 @@ function! SortImports()
         let import_groups = copy(obj["import_groups"])
       else
         call add(errs, "g:import_sort_groups['".curFiletype."']['import_groups'] not set!")
-      endif
-
-
-      " Optional Params
-      if has_key(obj, "project_package")
-        let project_package = copy(obj["project_package"])
       endif
     else
       call add(errs, "g:import_sort_groups['".curFiletype."'] not set!")
