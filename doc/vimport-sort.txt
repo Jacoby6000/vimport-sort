@@ -52,7 +52,7 @@ g:import_sort_settings
 ==============================================================================
 COMMANDS                                             *vimport-sort-commands*
 
-                                                    *SortImports*
+                                                    *:SortImports*
 :SortImports      Sorts imports as described by the configuration object
                   'g:import_sort_settings'
 
