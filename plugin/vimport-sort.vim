@@ -74,7 +74,7 @@ function! s:groupImportSort(prefix_in, patterns_in, project_package_in)
   let prefix = "^".prefix
   call add(patterns, '.*')
 
-  if project_package
+  if (project_package != "")
     call add(patterns, project_package)
   endif
 
