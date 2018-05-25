@@ -10,8 +10,6 @@ if exists('g:loaded_vimport_sort') || &cp
 endif
 let g:loaded_vimport_sort = 1
 
-let g:import_sort_settings = {}
-
 " Sort imports
 function! SortImports()
   let save_cursor = getpos(".")
