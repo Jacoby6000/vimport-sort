@@ -2,7 +2,7 @@
 " Language:   All
 " Maintainer: Jacob Barber
 " URL:        https://github.com/jacoby6000/vimport-sort
-" License:    MI
+" License:    MIT
 " --------------------------------------------------------------------
 
 if exists('g:loaded_vimport_sort') || &cp
@@ -10,45 +10,60 @@ if exists('g:loaded_vimport_sort') || &cp
 endif
 let g:loaded_vimport_sort = 1
 
+let g:import_sort_settings = {}
+
 " Sort imports
 function! SortImports()
   let save_cursor = getpos(".")
   let curFiletype = &filetype
 
-  if exists('g:import_sort_groups')
-    if has_key(g:import_sort_groups, curFiletype)
-      let sort_group_patterns = copy(g:import_sort_groups)
+  let errs = []
+
+  if has_key(g:import_sort_settings, curFiletype)
+    let obj = g:import_sort_settings[curFiletype]
+
+    if has_key(obj, "import_prefix")
+      let import_prefix = copy(obj["import_prefix"])
     else
-      echoerr ("Vimport-sort| g:import_sort_groups[".curFiletype."] not set! Run ':h :SortImports' for set up information.")
+      call add(errs, "g:import_sort_groups['".curFiletype."']['import_prefix'] not set!")
+    endif
+
+    if has_key(obj, "import_groups")
+      let import_groups = copy(obj["import_groups"])
+    else
+      call add(errs, "g:import_sort_groups['".curFiletype."']['import_groups'] not set!")
     endif
   else
-    echoerr "Vimport-sort| g:import_sort_groups not set! Run ':h :SortImports' for set up information."
-    return
+    call add(errs, "g:import_sort_groups['".curFiletype."'] not set!")
   endif
 
-  if exists('g:import_sort_groups')
-    let import_prefix = copy(g:import_prefix)
+  if len(errs) == 0
+    call s:groupImportSort(import_prefix, import_groups)
   else
-    echoerr "Vimport-sort| g:import_sort_groups not set! Run ':h :SortImports' for set up information."
-    return
+    for err in errs
+      echo "vimport-sort| ".err
+    endfor
+    echo "vimport-sort| Run ':h :SortImports' for set up information."
   endif
-
-  call s:groupImportSort(import_prefix, sort_group_patterns)
 
   call setpos('.', save_cursor)
 endfunction
 
-function! s:groupImportSort(prefix, patterns)
+function! s:groupImportSort(prefixIn, patternsIn)
   let curr = 1
   let first_line = -1
   let last_line = -1
   let trailing_newlines = 0
 
+  let prefix = a:prefixIn
+  let patterns = a:patternsIn
+
   " A catch all pattern for imports which didn't match the other cases.
-  call add(sort_group_patterns, '.*')
+  let prefix = "^".prefix
+  call add(patterns, '.*')
 
   let import_groups = []
-  for x in sort_group_patterns
+  for x in patterns
     call add(import_groups, [])
   endfor
 
@@ -63,8 +78,8 @@ function! s:groupImportSort(prefix, patterns)
       endif
 
       let iterator = 0
-      for sort_group_pattern in sort_group_patterns
-        let regex = prefix.' '.sort_group_pattern
+      for pattern in patterns
+        let regex = prefix . pattern
         if line =~ regex
           call add(import_groups[iterator], line)
           let iterator += 1
@@ -117,10 +132,9 @@ function! s:sortAndPrint(imports)
   endif
 endfunction
 
-" this useless function exists purely so the sort() ignores case
-" this is needed so scalaz/Scalaz appears next to each other
 function! s:sortIgnoreCase(i1, i2)
   return a:i1 == a:i2 ? 0 : a:i1 > a:i2 ? 1 : -1
+
 endfunction
 
 command! SortImports call SortImports()
