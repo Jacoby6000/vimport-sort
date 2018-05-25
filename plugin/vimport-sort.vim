@@ -14,6 +14,7 @@ let g:loaded_vimport_sort = 1
 function! SortImports()
   let save_cursor = getpos(".")
   let curFiletype = &filetype
+  let project_package = ""
 
   let errs = []
 
@@ -21,6 +22,7 @@ function! SortImports()
     if has_key(g:import_sort_settings, curFiletype)
       let obj = g:import_sort_settings[curFiletype]
 
+      " Required Params
       if has_key(obj, "import_prefix")
         let import_prefix = copy(obj["import_prefix"])
       else
@@ -32,6 +34,12 @@ function! SortImports()
       else
         call add(errs, "g:import_sort_groups['".curFiletype."']['import_groups'] not set!")
       endif
+
+
+      " Optional Params
+      if has_key(obj, "project_package")
+        let project_package = copy(obj["project_package"])
+      endif
     else
       call add(errs, "g:import_sort_groups['".curFiletype."'] not set!")
     endif
@@ -40,7 +48,7 @@ function! SortImports()
   endif
 
   if len(errs) == 0
-    call s:groupImportSort(import_prefix, import_groups)
+    call s:groupImportSort(import_prefix, import_groups, project_package)
   else
     for err in errs
       echo s:errorMsg(err)
@@ -55,18 +63,23 @@ function! s:errorMsg(err)
   return "vimport-sort| " . a:err
 endfunction
 
-function! s:groupImportSort(prefixIn, patternsIn)
+function! s:groupImportSort(prefix_in, patterns_in, project_package_in)
   let curr = 1
   let first_line = -1
   let last_line = -1
   let trailing_newlines = 0
 
-  let prefix = a:prefixIn
-  let patterns = a:patternsIn
+  let prefix = a:prefix_in
+  let patterns = a:patterns_in
+  let project_package = a:project_package_in
 
   " A catch all pattern for imports which didn't match the other cases.
   let prefix = "^".prefix
   call add(patterns, '.*')
+
+  if project_package
+    call add(patterns, project_package)
+  endif
 
   let import_groups = []
   for x in patterns
@@ -140,7 +153,6 @@ endfunction
 
 function! s:sortIgnoreCase(i1, i2)
   return a:i1 == a:i2 ? 0 : a:i1 > a:i2 ? 1 : -1
-
 endfunction
 
 command! SortImports call SortImports()
