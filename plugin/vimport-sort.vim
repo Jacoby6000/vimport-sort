@@ -12,39 +12,47 @@ let g:loaded_vimport_sort = 1
 
 " Sort imports
 function! SortImports()
-  let save_cursor = getpos(".")
-  let curFiletype = &filetype
+  if (exists('g:import_sort_settings'))
+    let save_cursor = getpos(".")
+    let curFiletype = &filetype
 
-  let errs = []
+    let errs = []
 
-  if has_key(g:import_sort_settings, curFiletype)
-    let obj = g:import_sort_settings[curFiletype]
+    if has_key(g:import_sort_settings, curFiletype)
+      let obj = g:import_sort_settings[curFiletype]
 
-    if has_key(obj, "import_prefix")
-      let import_prefix = copy(obj["import_prefix"])
+      if has_key(obj, "import_prefix")
+        let import_prefix = copy(obj["import_prefix"])
+      else
+        call add(errs, "g:import_sort_groups['".curFiletype."']['import_prefix'] not set!")
+      endif
+
+      if has_key(obj, "import_groups")
+        let import_groups = copy(obj["import_groups"])
+      else
+        call add(errs, "g:import_sort_groups['".curFiletype."']['import_groups'] not set!")
+      endif
     else
-      call add(errs, "g:import_sort_groups['".curFiletype."']['import_prefix'] not set!")
+      call add(errs, "g:import_sort_groups['".curFiletype."'] not set!")
     endif
 
-    if has_key(obj, "import_groups")
-      let import_groups = copy(obj["import_groups"])
+    if len(errs) == 0
+      call s:groupImportSort(import_prefix, import_groups)
     else
-      call add(errs, "g:import_sort_groups['".curFiletype."']['import_groups'] not set!")
+      for err in errs
+        echo s:errorMsg(err)
+      endfor
+      echo s:errorMsg("Run ':h :SortImports' for set up information.")
     endif
-  else
-    call add(errs, "g:import_sort_groups['".curFiletype."'] not set!")
-  endif
 
-  if len(errs) == 0
-    call s:groupImportSort(import_prefix, import_groups)
+    call setpos('.', save_cursor)
   else
-    for err in errs
-      echo "vimport-sort| ".err
-    endfor
-    echo "vimport-sort| Run ':h :SortImports' for set up information."
+    echo s:errorMsg("g:import_sort_settings is not set. See `:h :SortImports` for set up information")
   endif
+endfunction
 
-  call setpos('.', save_cursor)
+function! s:errorMsg(err)
+  return "vimport-sort| " . a:err
 endfunction
 
 function! s:groupImportSort(prefixIn, patternsIn)
