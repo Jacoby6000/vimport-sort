@@ -69,19 +69,18 @@ function! s:groupImportSort(prefix_in, patterns_in, project_package_in)
   let prefix = a:prefix_in
   let patterns = a:patterns_in
   let project_package = a:project_package_in
+  let project_package_defined = (project_package != "")
 
   " A catch all pattern for imports which didn't match the other cases.
   let prefix = "^".prefix
   call add(patterns, '.*')
 
-  if (project_package != "")
-    call add(patterns, project_package)
-  endif
-
   let import_groups = []
   for x in patterns
     call add(import_groups, [])
   endfor
+
+  let final_group = []
 
   " loop over lines in buffer
   while curr <= line('$')
@@ -93,17 +92,24 @@ function! s:groupImportSort(prefix_in, patterns_in, project_package_in)
         let first_line = curr
       endif
 
-      let iterator = 0
-      for pattern in patterns
-        let regex = prefix . pattern
-        if line =~ regex
-          call add(import_groups[iterator], line)
-          let iterator += 1
-          break
-        endif
+      " If the current line matches the project package, prepare it to be put
+      " at the bottom.
+      if (line =~ (prefix . project_package)) && project_package_defined
+        call add(final_group, line)
+      else
+        let iterator = 0
 
-        let iterator += 1
-      endfor
+        for pattern in patterns
+          let regex = prefix . pattern
+          if line =~ regex
+            call add(import_groups[iterator], line)
+            break
+          endif
+
+          let iterator += 1
+        endfor
+
+      endif
 
       let trailing_newlines = 0
     elseif empty(line)
@@ -124,9 +130,12 @@ function! s:groupImportSort(prefix_in, patterns_in, project_package_in)
     execute 'd'to_delete
   endif
 
+  call s:sortAndPrint(final_group)
+
   for lines in reverse(import_groups)
     call s:sortAndPrint(lines)
   endfor
+
 
   if first_line != -1
     " remove extra blank line at top
