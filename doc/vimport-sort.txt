@@ -17,7 +17,7 @@ There is only one option to set in vimport-sort, g:import_sort_settings.
                                                 *g:import_sort_settings*
 g:import_sort_settings
   This setting is a dictionary used to define rules for how to group and sort
-  imports. They key at the root of the dictionary indicates the language, and
+  imports. The key at the root of the dictionary indicates the language, and
   there are two configuration options per language.
 
   'import_prefix' is a pattern for detecting the beginning of an import
@@ -26,6 +26,12 @@ g:import_sort_settings
   'import_groups' is an array of patterns for each grouping of imports you wish
   to have.
 
+  There is also a special key which goes at the root of the settings
+  dictionary called 'project_package'.  Any imports which match the
+  'project_package' pattern will be placed at the bottom of the imports list.
+  This is usually set in a local .exrc file, so that each of your projects
+  can have its own project package.
+
   Note that if an import does not fit in to an import group pattern, it will be
   grouped with the others that did not match an import group pattern and placed
   at the bottom of the imports list.
@@ -33,6 +39,7 @@ g:import_sort_settings
   Example configuration
 >
       g:import_sort_settings = {
+      \  'project_package': "my.project.package",
       \  'scala': {
       \    'import_prefix': 'import ',
       \    'import_groups': [
